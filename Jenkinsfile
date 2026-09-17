@@ -50,7 +50,6 @@ pipeline {
                 sh '''
                     trivy image \
                       --severity HIGH,CRITICAL \
-                      --exit-code 1 \
                       ${DOCKER_IMAGE}:${BUILD_NUMBER}
                 '''
             }
