@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
+        DOCKER_IMAGE = 'satya0205/devops-sre-backend'
     }
 
     stages {
@@ -38,7 +39,7 @@ pipeline {
             steps {
                 sh '''
                     docker build \
-                      -t devops-sre-backend:${BUILD_NUMBER} \
+                      -t ${DOCKER_IMAGE}:${BUILD_NUMBER} \
                       backend/
                 '''
             }
@@ -50,8 +51,34 @@ pipeline {
                     trivy image \
                       --severity HIGH,CRITICAL \
                       --exit-code 1 \
-                      devops-sre-backend:${BUILD_NUMBER}
+                      ${DOCKER_IMAGE}:${BUILD_NUMBER}
                 '''
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
+                    sh '''
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+                        docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
+
+                        docker tag \
+                          ${DOCKER_IMAGE}:${BUILD_NUMBER} \
+                          ${DOCKER_IMAGE}:latest
+
+                        docker push ${DOCKER_IMAGE}:latest
+
+                        docker logout
+                    '''
+                }
             }
         }
     }
