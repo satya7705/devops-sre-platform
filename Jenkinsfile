@@ -19,7 +19,15 @@ pipeline {
                 '''
             }
         }
-
+       stage('SonarQube Analysis') {
+          steps {
+              withSonarQubeEnv('sonarqube') {
+            sh '''
+                sonar-scanner
+            '''
+        }
+    }
+}
         stage('Build Docker Image') {
             steps {
                 sh '''
