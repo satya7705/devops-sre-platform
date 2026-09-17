@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        SCANNER_HOME = tool 'sonar-scanner'
+    }
+
     stages {
 
         stage('Checkout') {
@@ -19,15 +23,17 @@ pipeline {
                 '''
             }
         }
-       stage('SonarQube Analysis') {
-          steps {
-              withSonarQubeEnv('sonarqube') {
-            sh '''
-                sonar-scanner
-            '''
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    sh '''
+                        ${SCANNER_HOME}/bin/sonar-scanner
+                    '''
+                }
+            }
         }
-    }
-}
+
         stage('Build Docker Image') {
             steps {
                 sh '''
