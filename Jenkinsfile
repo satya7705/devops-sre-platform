@@ -43,6 +43,17 @@ pipeline {
                 '''
             }
         }
+
+        stage('Trivy Security Scan') {
+            steps {
+                sh '''
+                    trivy image \
+                      --severity HIGH,CRITICAL \
+                      --exit-code 1 \
+                      devops-sre-backend:${BUILD_NUMBER}
+                '''
+            }
+        }
     }
 
     post {
